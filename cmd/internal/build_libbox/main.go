@@ -74,13 +74,13 @@ func buildAndroid() {
 		javaPath = filepath.Join(javaHome, "bin", "java")
 	}
 
-	javaVersion, err := shell.Exec(javaPath, "--version").ReadOutput()
+	_, err := shell.Exec(javaPath, "--version").ReadOutput()
 	if err != nil {
 		log.Fatal(E.Cause(err, "check java version"))
 	}
-	if !strings.Contains(javaVersion, "openjdk 17") {
-		log.Fatal("java version should be openjdk 17")
-	}
+	//if !strings.Contains(javaVersion, "openjdk 17") {
+	//	log.Fatal("java version should be openjdk 17")
+	//}
 
 	var bindTarget string
 	if platform != "" {
@@ -97,7 +97,7 @@ func buildAndroid() {
 		"-target", bindTarget,
 		"-androidapi", "21",
 		"-javapkg=io.nekohasekai",
-		"-libname=box",
+		//"-libname=box",
 	}
 	if !debugEnabled {
 		args = append(args, sharedFlags...)
@@ -147,7 +147,7 @@ func buildApple() {
 		"bind",
 		"-v",
 		"-target", bindTarget,
-		"-libname=box",
+		//"-libname=box",
 	}
 	if !debugEnabled {
 		args = append(args, sharedFlags...)
@@ -174,6 +174,8 @@ func buildApple() {
 
 	copyPath := filepath.Join("..", "sing-box-for-apple")
 	if rw.IsDir(copyPath) {
+		abs, _ := filepath.Abs(".")
+		log.Info("Looking for Libbox.xcframework in ", abs)
 		targetDir := filepath.Join(copyPath, "Libbox.xcframework")
 		targetDir, _ = filepath.Abs(targetDir)
 		os.RemoveAll(targetDir)

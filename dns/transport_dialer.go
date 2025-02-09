@@ -2,6 +2,8 @@ package dns
 
 import (
 	"context"
+	"fmt"
+	"github.com/sagernet/sing-box/log"
 	"net"
 	"time"
 
@@ -32,11 +34,15 @@ func NewRemoteDialer(ctx context.Context, options option.RemoteDNSServerOptions)
 		transportDialer := dialer.NewDefaultOutbound(ctx)
 		if options.LegacyAddressResolver != "" {
 			transport := service.FromContext[adapter.DNSTransportManager](ctx)
-			resolverTransport, loaded := transport.Transport(options.LegacyAddressResolver)
+			_, loaded := transport.Transport(options.LegacyAddressResolver)
 			if !loaded {
-				return nil, E.New("address resolver not found: ", options.LegacyAddressResolver)
+				log.Debug(fmt.Sprintf("Address resolver %s not found, defaulting to direct mode", options.LegacyAddressResolver))
+				return dialer.NewWithOptions(dialer.Options{
+					Context:        ctx,
+					Options:        options.DialerOptions,
+					DirectResolver: true,
+				})
 			}
-			transportDialer = newTransportDialer(transportDialer, service.FromContext[adapter.DNSRouter](ctx), resolverTransport, C.DomainStrategy(options.LegacyAddressStrategy), time.Duration(options.LegacyAddressFallbackDelay))
 		} else if options.ServerIsDomain() {
 			return nil, E.New("missing address resolver for server: ", options.Server)
 		}

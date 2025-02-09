@@ -129,11 +129,27 @@ func (r *Router) routeConnection(ctx context.Context, conn net.Conn, metadata ad
 	}
 	if selectedRule == nil {
 		defaultOutbound := r.outbound.Default()
-		if !common.Contains(defaultOutbound.Network(), N.NetworkTCP) {
-			buf.ReleaseMulti(buffers)
-			return E.New("TCP is not supported by default outbound: ", defaultOutbound.Tag())
+		if defaultOutbound == nil {
+			r.logger.WarnContext(ctx, "Default outbound is nil, forcing traffic to proxy")
+			selectedOutbound, _ = r.outbound.Outbound("proxy")
+		} else {
+			if !common.Contains(defaultOutbound.Network(), N.NetworkTCP) {
+				buf.ReleaseMulti(buffers)
+				return E.New("TCP is not supported by default outbound: ", defaultOutbound.Tag())
+			}
+			selectedOutbound = defaultOutbound
 		}
-		selectedOutbound = defaultOutbound
+		if selectedOutbound == nil {
+			r.logger.WarnContext(ctx, "No outbound found, routing traffic to proxy")
+			selectedOutbound, _ = r.outbound.Outbound("proxy")
+		}
+	}
+
+	if selectedOutbound != nil {
+		r.logger.DebugContext(ctx, "Routing traffic to: ", selectedOutbound.Tag())
+	} else {
+		r.logger.ErrorContext(ctx, "No outbound selected, dropping traffic!")
+		return E.New("No valid outbound found")
 	}
 
 	for _, buffer := range buffers {

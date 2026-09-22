@@ -11,6 +11,7 @@ V2Ray Transport 是 v2ray 发明的一组私有协议，并污染了其他协议
 可用的传输协议：
 
 * HTTP
+* XHTTP
 * WebSocket
 * QUIC
 * gRPC
@@ -90,6 +91,79 @@ HTTP 请求的额外标头
 在 HTTP2 客户端中：
 
 指定发送 PING 帧后，在指定的超时时间内必须接收到响应。如果在指定的超时时间内没有收到 PING 帧的响应，则连接将关闭。默认超时持续时间为 15 秒。
+
+### XHTTP
+
+```json
+{
+  "type": "xhttp",
+  "host": "example.com",
+  "path": "/xhttp",
+  "mode": "auto",
+  "headers": {},
+  "http_version": "2",
+  "no_grpc_header": false,
+  "no_sse_header": false,
+  "max_post_size": 1000000,
+  "max_buffered_posts": 30
+}
+```
+
+支持入站和出站，使用 Xray 默认的 XHTTP 格式：上传数据位于 POST 请求体中，
+会话 ID 和数据包序号位于路径中。
+
+#### host
+
+客户端发送的 HTTP Host；服务端在配置后进行检查。
+TLS 服务器名称需要单独通过 `tls.server_name` 配置。
+
+#### path
+
+请求路径，默认为 `/`。自动补充开头和结尾的 `/`。
+客户端保留查询参数，服务端检查规范化的路径前缀。
+
+#### mode
+
+* `packet-up`：GET 下载和带序号的 POST 上传，支持 HTTP/1.1 和 HTTP/2。
+* `stream-up`：独立的 GET 下载和流式 POST 上传，需要 HTTP/2。
+* `stream-one`：单个双向流式 POST，需要 HTTP/2。
+* `auto`（默认）：客户端在 HTTP/2 下使用 `stream-up`，HTTP/1.1 下使用 `packet-up`；服务端接受所有模式。
+
+#### headers
+
+客户端的额外请求头或服务端的额外响应头。协议头（包括填充）优先。
+
+#### http_version
+
+客户端 HTTP 版本：`1.1` 或 `2`。启用 TLS 时默认为 `2`，否则为 `1.1`。
+不使用 TLS 时设置为 `2` 将使用 h2c prior knowledge。
+服务端始终接受这两种版本，此字段不限制服务端。
+
+#### no_grpc_header
+
+不在流式上传请求中设置 `Content-Type: application/grpc`。
+
+#### no_sse_header
+
+不在下载响应中设置 `Content-Type: text/event-stream`。
+
+#### max_post_size
+
+单个上传 POST 的最大字节数，默认为 `1000000`，范围为 1–16777216。
+客户端值不能超过服务端限制。
+
+#### max_buffered_posts
+
+每个服务端会话允许的待处理数据包序号数量，默认为 `30`，范围为 1–1024。
+重复、过期或超出窗口的序号将被拒绝。没有下载请求的会话在 30 秒后过期。
+最多允许 1024 个会话，所有会话缓存的上传数据总量限制为 64 MiB。
+
+#### 兼容性
+
+支持 Xray 默认的路径/请求体格式及 Referer 填充。
+暂不支持 HTTP/3、独立下载配置、XMUX 调优、自定义填充或其他会话/序号/数据位置。
+不接受 Xray 的 `extra` 对象，请使用上述 sing-box 字段。
+此传输不会启用 XHTTP 上的 VLESS Vision 流控支持。
 
 ### WebSocket
 

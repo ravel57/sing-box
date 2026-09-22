@@ -12,8 +12,9 @@ import (
 )
 
 type _V2RayTransportOptions struct {
-	Type               string                  `json:"type" enum:"http,ws,quic,grpc,httpupgrade"`
+	Type               string                  `json:"type" enum:"http,xhttp,ws,quic,grpc,httpupgrade"`
 	HTTPOptions        V2RayHTTPOptions        `json:"-"`
+	XHTTPOptions       V2RayXHTTPOptions       `json:"-"`
 	WebsocketOptions   V2RayWebsocketOptions   `json:"-"`
 	QUICOptions        V2RayQUICOptions        `json:"-"`
 	GRPCOptions        V2RayGRPCOptions        `json:"-"`
@@ -25,6 +26,8 @@ type V2RayTransportOptions _V2RayTransportOptions
 func (o V2RayTransportOptions) MarshalJSON() ([]byte, error) {
 	var v any
 	switch o.Type {
+	case C.V2RayTransportTypeXHTTP:
+		v = o.XHTTPOptions
 	case C.V2RayTransportTypeHTTP:
 		v = o.HTTPOptions
 	case C.V2RayTransportTypeWebsocket:
@@ -50,6 +53,8 @@ func (o *V2RayTransportOptions) UnmarshalJSON(bytes []byte) error {
 	}
 	var v any
 	switch o.Type {
+	case C.V2RayTransportTypeXHTTP:
+		v = &o.XHTTPOptions
 	case C.V2RayTransportTypeHTTP:
 		v = &o.HTTPOptions
 	case C.V2RayTransportTypeWebsocket:
@@ -73,6 +78,7 @@ func (o *V2RayTransportOptions) UnmarshalJSON(bytes []byte) error {
 func (o V2RayTransportOptions) DescribeSchema(builder schema.Builder) (*schema.Node, error) {
 	return builder.Define("V2RayTransport", func() (*schema.Node, error) {
 		return schema.DiscriminatedUnion(builder, "type", true, []schema.UnionVariant{
+			{Value: C.V2RayTransportTypeXHTTP, StructType: reflect.TypeFor[V2RayXHTTPOptions]()},
 			{Value: C.V2RayTransportTypeHTTP, StructType: reflect.TypeFor[V2RayHTTPOptions]()},
 			{Value: C.V2RayTransportTypeWebsocket, StructType: reflect.TypeFor[V2RayWebsocketOptions]()},
 			{Value: C.V2RayTransportTypeQUIC, StructType: reflect.TypeFor[V2RayQUICOptions]()},
@@ -112,4 +118,17 @@ type V2RayHTTPUpgradeOptions struct {
 	Host    string               `json:"host,omitempty"`
 	Path    string               `json:"path,omitempty"`
 	Headers badoption.HTTPHeader `json:"headers,omitempty"`
+}
+
+// V2RayXHTTPOptions uses the default Xray path/body wire format.
+type V2RayXHTTPOptions struct {
+	Host             string               `json:"host,omitempty"`
+	Path             string               `json:"path,omitempty"`
+	Mode             string               `json:"mode,omitempty" enum:"auto,packet-up,stream-up,stream-one"`
+	Headers          badoption.HTTPHeader `json:"headers,omitempty"`
+	HTTPVersion      string               `json:"http_version,omitempty" enum:"1.1,2"`
+	NoGRPCHeader     bool                 `json:"no_grpc_header,omitempty"`
+	NoSSEHeader      bool                 `json:"no_sse_header,omitempty"`
+	MaxPostSize      int                  `json:"max_post_size,omitempty"`
+	MaxBufferedPosts int                  `json:"max_buffered_posts,omitempty"`
 }

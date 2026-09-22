@@ -29,3 +29,33 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 In addition, no derivative work may use the name or imply association
 with this application without prior consent.
 ```
+
+`iOS build`
+```bash
+gomobile bind \                                            
+-target=ios \
+-tags "with_gvisor,with_naive_outbound,with_quic,with_wireguard,with_utls,with_dhcp,with_clash_api" \
+-o Libbox.xcframework \
+./experimental/libbox
+```
+
+
+`tvOS build`
+```bash
+gomobile bind \
+-target=tvos,tvossimulator \
+-tags "with_gvisor,with_naive_outbound,with_quic,with_wireguard,with_utls,with_dhcp,with_clash_api" \
+-o Libbox.xcframework \
+./experimental/libbox
+```
+
+
+`android`
+```bash
+gomobile bind \
+  -target=android \
+  -androidapi=21 \
+  -ldflags="-checklinkname=0" \
+  -o libbox.aar \
+  ./experimental/libbox
+```

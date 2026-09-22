@@ -12,6 +12,7 @@ as `trojan-grpc` in clash.
 Available transports:
 
 * HTTP
+* XHTTP
 * WebSocket
 * QUIC
 * gRPC
@@ -97,6 +98,83 @@ In HTTP2 client:
 Specifies the timeout duration after sending a PING frame, within which a response must be received.
 If a response to the PING frame is not received within the specified timeout duration, the connection will be closed.
 The default timeout duration is 15 seconds.
+
+### XHTTP
+
+```json
+{
+  "type": "xhttp",
+  "host": "example.com",
+  "path": "/xhttp",
+  "mode": "auto",
+  "headers": {},
+  "http_version": "2",
+  "no_grpc_header": false,
+  "no_sse_header": false,
+  "max_post_size": 1000000,
+  "max_buffered_posts": 30
+}
+```
+
+Supports inbound and outbound connections using Xray's default XHTTP wire format:
+POST bodies carry uploads; the session ID and packet sequence are placed in the path.
+
+#### host
+
+HTTP Host sent by the client. The server checks this value when configured.
+It does not change the TLS server name; configure `tls.server_name` separately.
+
+#### path
+
+Request path, default `/`. A leading and trailing slash are added when missing.
+The client preserves query parameters. The server checks the normalized path prefix.
+
+#### mode
+
+* `packet-up`: separate GET download and sequenced POST uploads. Supports HTTP/1.1 and HTTP/2.
+* `stream-up`: separate GET download and streaming POST upload. Requires HTTP/2.
+* `stream-one`: a single bidirectional streaming POST. Requires HTTP/2.
+* `auto` (default): the client selects `stream-up` for HTTP/2 and `packet-up` for HTTP/1.1;
+  the server accepts all three modes.
+
+#### headers
+
+Additional request headers on the client or response headers on the server.
+Protocol headers, including padding, take precedence.
+
+#### http_version
+
+Client HTTP version: `1.1` or `2`. Defaults to `2` with TLS and `1.1` without TLS.
+Setting `2` without TLS uses HTTP/2 prior knowledge (h2c).
+The server accepts both HTTP versions regardless of this field.
+
+#### no_grpc_header
+
+Do not set `Content-Type: application/grpc` on streaming upload requests.
+
+#### no_sse_header
+
+Do not set `Content-Type: text/event-stream` on download responses.
+
+#### max_post_size
+
+Maximum upload POST size in bytes, default `1000000`. Valid range: 1–16777216.
+The client's value must not exceed the server's limit.
+
+#### max_buffered_posts
+
+Server limit for outstanding packet sequences per session, default `30`.
+Valid range: 1–1024. Duplicate, stale, or too-far-ahead sequences are rejected.
+Sessions without a download request expire after 30 seconds; at most 1024 sessions
+may exist at once. Buffered upload packets across all sessions are limited to 64 MiB.
+
+#### Compatibility
+
+Compatible with the default path/body framing and Referer padding used by Xray.
+HTTP/3, separate download settings, XMUX tuning, custom padding, and alternate
+session/sequence/data placements are not implemented. Xray `extra` objects are
+not accepted; use the sing-box fields above. This transport does not enable
+VLESS Vision flow support over XHTTP.
 
 ### WebSocket
 

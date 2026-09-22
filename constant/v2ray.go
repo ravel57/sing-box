@@ -2,6 +2,7 @@ package constant
 
 const (
 	V2RayTransportTypeHTTP        = "http"
+	V2RayTransportTypeXHTTP       = "xhttp"
 	V2RayTransportTypeWebsocket   = "ws"
 	V2RayTransportTypeQUIC        = "quic"
 	V2RayTransportTypeGRPC        = "grpc"

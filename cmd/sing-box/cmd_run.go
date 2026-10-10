@@ -30,6 +30,7 @@ var commandRun = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := run()
 		if err != nil {
+			writeCrashLog(err)
 			log.Fatal(err)
 		}
 	},
@@ -229,5 +230,6 @@ func closeMonitor(ctx context.Context) {
 		return
 	default:
 	}
+	writeCrashLog("sing-box did not close!")
 	log.Fatal("sing-box did not close!")
 }

@@ -35,9 +35,11 @@ func init() {
 	mainCommand.PersistentFlags().StringArrayVarP(&configDirectories, "config-directory", "C", nil, "set configuration directory path")
 	mainCommand.PersistentFlags().StringVarP(&workingDir, "directory", "D", "", "set working directory")
 	mainCommand.PersistentFlags().BoolVarP(&disableColor, "disable-color", "", false, "disable color output")
+	mainCommand.PersistentFlags().StringVarP(&crashLogPath, "crash-log", "", "", "write fatal errors and Go runtime crashes to this file")
 }
 
 func preRun(cmd *cobra.Command, args []string) {
+	setupCrashLog()
 	globalCtx = context.Background()
 	sudoUser := os.Getenv("SUDO_USER")
 	sudoUID, _ := strconv.Atoi(os.Getenv("SUDO_UID"))

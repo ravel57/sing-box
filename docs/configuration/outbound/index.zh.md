@@ -33,6 +33,7 @@
 | `hysteria2`    | [Hysteria2](./hysteria2/)       |
 | `anytls`       | [AnyTLS](./anytls/)             |
 | `trusttunnel`  | [TrustTunnel](./trusttunnel/)   |
+| `masque`       | [MASQUE](./masque/)             |
 | `snell`        | [Snell](./snell/)               |
 | `tor`          | [Tor](./tor/)                   |
 | `ssh`          | [SSH](./ssh/)                   |

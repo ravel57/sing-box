@@ -5,6 +5,7 @@ icon: material/alert-decagram
 #### 1.14.5
 
 * Add TrustTunnel outbound
+* Add MASQUE (CONNECT-IP) outbound
 
 #### 1.14.4
 

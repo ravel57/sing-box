@@ -127,6 +127,7 @@ func NewEndpoint(ctx context.Context, router adapter.Router, logger log.ContextL
 			}
 		}),
 		Workers: options.Workers,
+		Amnezia: amneziaOptions(options.WireGuardAmneziaOptions),
 	})
 	if err != nil {
 		return nil, err
@@ -340,5 +341,26 @@ func (w *Endpoint) PreferredAddress(metadata *adapter.InboundContext, address ne
 	if !w.started.Load() {
 		return false
 	}
-	return w.endpoint.Lookup(address) != nil
+	return w.endpoint.Contains(address)
+}
+
+func amneziaOptions(options option.WireGuardAmneziaOptions) *wireguard.AmneziaOptions {
+	if !options.Enabled() {
+		return nil
+	}
+	return &wireguard.AmneziaOptions{
+		Jc: options.Jc, Jmin: options.Jmin, Jmax: options.Jmax,
+		S1: options.S1, S2: options.S2, S3: options.S3, S4: options.S4,
+		H1: options.H1, H2: options.H2, H3: options.H3, H4: options.H4,
+		I1: options.I1, I2: options.I2, I3: options.I3, I4: options.I4, I5: options.I5,
+		HeaderProtectionKey:    options.HeaderProtectionKey,
+		ContentPaddingAddition: options.ContentPaddingAddition,
+		RekeyAfterTime:         options.RekeyAfterTime,
+		RekeyTimeout:           options.RekeyTimeout,
+		RejectAfterTime:        options.RejectAfterTime,
+		KeepaliveTimeout:       options.KeepaliveTimeout,
+		MaxHandshakeAttempts:   options.MaxHandshakeAttempts,
+		RandomTrailers:         options.RandomTrailers,
+		DisableCookies:         options.DisableCookies,
+	}
 }

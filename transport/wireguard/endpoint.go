@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	awgdevice "github.com/amnezia-vpn/amneziawg-go/v3/device"
 	"github.com/sagernet/sing-box/common/dialer"
 	"github.com/sagernet/sing-box/service/powerreport"
 	"github.com/sagernet/sing-tun"
@@ -35,6 +36,8 @@ type Endpoint struct {
 	tunDevice      Device
 	returnDevice   *returnDeviceWrapper
 	device         *device.Device
+	awgDevice      *awgdevice.Device
+	allowedSet     *netipx.IPSet
 	allowedIPs     *device.AllowedIPs
 	egressPool     *tun.UDPEgressPool
 	pause          pause.Manager
@@ -100,6 +103,17 @@ func NewEndpoint(options EndpointOptions) (*Endpoint, error) {
 		return nil, err
 	}
 	allowedAddresses := allowedIPSet.Prefixes()
+	if options.Amnezia != nil {
+		if options.System {
+			return nil, E.New("`system` is not supported with AmneziaWG")
+		}
+		if err = options.Amnezia.validate(); err != nil {
+			return nil, err
+		}
+		if options.MTU == 0 {
+			options.MTU = uint32(max(1420-options.Amnezia.S4, 1280))
+		}
+	}
 	if options.MTU == 0 {
 		options.MTU = 1408
 	}
@@ -129,12 +143,16 @@ func NewEndpoint(options EndpointOptions) (*Endpoint, error) {
 		peers:          peers,
 		ipcConf:        ipcConf,
 		allowedAddress: allowedAddresses,
+		allowedSet:     allowedIPSet,
 		tunDevice:      tunDevice,
 		returnDevice:   &returnDeviceWrapper{Device: tunDevice},
 	}, nil
 }
 
 func (e *Endpoint) Start(postStart bool) error {
+	if e.options.Amnezia != nil {
+		return e.startAmnezia(postStart)
+	}
 	hasDomainPeer := common.Any(e.peers, func(peer peerConfig) bool {
 		return peer.destination.IsDomain()
 	})
@@ -289,6 +307,12 @@ func (e *Endpoint) Close() error {
 	}
 	e.stateAccess.Lock()
 	defer e.stateAccess.Unlock()
+	if e.awgDevice != nil {
+		e.awgDevice.Down()
+		e.awgDevice.Close()
+		e.awgDevice = nil
+		return nil
+	}
 	if e.device != nil {
 		e.device.Down()
 		e.device.Close()
@@ -296,6 +320,14 @@ func (e *Endpoint) Close() error {
 		return nil
 	}
 	return e.tunDevice.Close()
+}
+
+// Contains reports whether a peer routes the address.
+func (e *Endpoint) Contains(address netip.Addr) bool {
+	if e.options.Amnezia != nil {
+		return e.allowedSet.Contains(address)
+	}
+	return e.Lookup(address) != nil
 }
 
 func (e *Endpoint) Lookup(address netip.Addr) *device.Peer {
@@ -306,6 +338,9 @@ func (e *Endpoint) Lookup(address netip.Addr) *device.Peer {
 }
 
 func (e *Endpoint) BindUpdate() error {
+	if e.awgDevice != nil {
+		return e.awgDevice.BindUpdate()
+	}
 	if e.device == nil {
 		return nil
 	}
@@ -322,6 +357,14 @@ func (e *Endpoint) onPauseUpdated(event int) {
 func (e *Endpoint) updateNetworkPause() {
 	e.stateAccess.Lock()
 	defer e.stateAccess.Unlock()
+	if e.awgDevice != nil {
+		if e.pause.IsNetworkPaused() {
+			e.awgDevice.Down()
+		} else {
+			e.awgDevice.Up()
+		}
+		return
+	}
 	if e.device == nil {
 		return
 	}

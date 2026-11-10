@@ -6,6 +6,7 @@ icon: material/alert-decagram
 
 * Add TrustTunnel outbound
 * Add MASQUE (CONNECT-IP) outbound
+* Add AmneziaWG 3.1 obfuscation fields to the WireGuard endpoint
 
 #### 1.14.4
 

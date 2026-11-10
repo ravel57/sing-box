@@ -19,7 +19,41 @@ type WireGuardEndpointOptions struct {
 	UDPFiltering UDPNATBehavior                   `json:"udp_filtering,omitempty"`
 	UDPNATMax    uint32                           `json:"udp_nat_max,omitempty"`
 	Workers      int                              `json:"workers,omitempty"`
+	WireGuardAmneziaOptions
 	DialerOptions
+}
+
+// Setting any field turns the endpoint into AmneziaWG 3.1; names match amneziawg-go's UAPI keys.
+type WireGuardAmneziaOptions struct {
+	Jc                     int    `json:"jc,omitempty"`
+	Jmin                   int    `json:"jmin,omitempty"`
+	Jmax                   int    `json:"jmax,omitempty"`
+	S1                     int    `json:"s1,omitempty"`
+	S2                     int    `json:"s2,omitempty"`
+	S3                     int    `json:"s3,omitempty"`
+	S4                     int    `json:"s4,omitempty"`
+	H1                     string `json:"h1,omitempty"`
+	H2                     string `json:"h2,omitempty"`
+	H3                     string `json:"h3,omitempty"`
+	H4                     string `json:"h4,omitempty"`
+	I1                     string `json:"i1,omitempty"`
+	I2                     string `json:"i2,omitempty"`
+	I3                     string `json:"i3,omitempty"`
+	I4                     string `json:"i4,omitempty"`
+	I5                     string `json:"i5,omitempty"`
+	HeaderProtectionKey    string `json:"header_protection_key,omitempty"`
+	ContentPaddingAddition string `json:"content_padding_addition,omitempty"`
+	RekeyAfterTime         string `json:"rekey_after_time,omitempty"`
+	RekeyTimeout           string `json:"rekey_timeout,omitempty"`
+	RejectAfterTime        string `json:"reject_after_time,omitempty"`
+	KeepaliveTimeout       string `json:"keepalive_timeout,omitempty"`
+	MaxHandshakeAttempts   string `json:"max_handshake_attempts,omitempty"`
+	RandomTrailers         bool   `json:"random_trailers,omitempty"`
+	DisableCookies         bool   `json:"disable_cookies,omitempty"`
+}
+
+func (o WireGuardAmneziaOptions) Enabled() bool {
+	return o != (WireGuardAmneziaOptions{})
 }
 
 type WireGuardPeer struct {

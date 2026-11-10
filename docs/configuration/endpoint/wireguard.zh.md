@@ -128,6 +128,17 @@ WireGuard worker 数量。
 
 默认使用 CPU 数量。
 
+### AmneziaWG 3.1 字段
+
+!!! question "自 sing-box 1.14.5 起"
+
+设置以下任一字段后，端点将通过 `amneziawg-go` 使用 [AmneziaWG](https://docs.amnezia.org/documentation/amnezia-wg/) 3.1 协议，
+所有取值必须与服务器一致。字段名与 amneziawg-go UAPI 一致：`jc`、`jmin`、`jmax`、`s1`-`s4`、`h1`-`h4`、`i1`-`i5`、
+`header_protection_key`、`content_padding_addition`、`rekey_after_time`、`rekey_timeout`、`reject_after_time`、
+`keepalive_timeout`、`max_handshake_attempts`、`random_trailers`、`disable_cookies`（详见英文文档）。
+
+AmneziaWG 下不支持：`system`、`peers.reserved`、`workers` 和入站端口转发。域名对端仅在启动时解析一次。
+
 ### UDP NAT 字段
 
 参阅 [UDP NAT 字段](/zh/configuration/shared/udp-nat/)。

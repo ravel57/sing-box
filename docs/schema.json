@@ -4674,6 +4674,81 @@
             "workers": {
               "type": "integer"
             },
+            "jc": {
+              "type": "integer"
+            },
+            "jmin": {
+              "type": "integer"
+            },
+            "jmax": {
+              "type": "integer"
+            },
+            "s1": {
+              "type": "integer"
+            },
+            "s2": {
+              "type": "integer"
+            },
+            "s3": {
+              "type": "integer"
+            },
+            "s4": {
+              "type": "integer"
+            },
+            "h1": {
+              "type": "string"
+            },
+            "h2": {
+              "type": "string"
+            },
+            "h3": {
+              "type": "string"
+            },
+            "h4": {
+              "type": "string"
+            },
+            "i1": {
+              "type": "string"
+            },
+            "i2": {
+              "type": "string"
+            },
+            "i3": {
+              "type": "string"
+            },
+            "i4": {
+              "type": "string"
+            },
+            "i5": {
+              "type": "string"
+            },
+            "header_protection_key": {
+              "type": "string"
+            },
+            "content_padding_addition": {
+              "type": "string"
+            },
+            "rekey_after_time": {
+              "type": "string"
+            },
+            "rekey_timeout": {
+              "type": "string"
+            },
+            "reject_after_time": {
+              "type": "string"
+            },
+            "keepalive_timeout": {
+              "type": "string"
+            },
+            "max_handshake_attempts": {
+              "type": "string"
+            },
+            "random_trailers": {
+              "type": "boolean"
+            },
+            "disable_cookies": {
+              "type": "boolean"
+            },
             "detour": {
               "type": "string",
               "x-tag-reference": "outbound"

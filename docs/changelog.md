@@ -2,6 +2,10 @@
 icon: material/alert-decagram
 ---
 
+#### 1.14.5
+
+* Add TrustTunnel outbound
+
 #### 1.14.4
 
 * Fixes and improvements

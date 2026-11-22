@@ -6,6 +6,7 @@
 /site/
 /bin/
 /dist/
+/dist-openwrt/
 /sing-box
 /sing-box.exe
 /build/
@@ -21,3 +22,4 @@
 CLAUDE.md
 AGENTS.md
 /.claude/
+/libcronet.so
